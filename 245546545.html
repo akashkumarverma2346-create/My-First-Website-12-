@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vastra Store - Order & Admin Panel</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f5f6fa; color: #333; padding: 20px; }
+        header { text-align: center; padding: 25px; background: #2c3e50; color: white; border-radius: 8px; margin-bottom: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .admin-card { background: #fff3e0; border: 2px dashed #ff9800; }
+        h2 { margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #edf2f7; padding-bottom: 8px; }
+        .product-img { width: 100%; height: 220px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
+        .price { font-size: 22px; font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
+        label { display: block; margin: 12px 0 5px; font-weight: 600; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 14px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
+        .btn-order { background: #27ae60; color: white; }
+        .btn-order:hover { background: #219150; }
+        .btn-track { background: #2980b9; color: white; }
+        .btn-track:hover { background: #1f6391; }
+        .btn-admin { background: #ff9800; color: white; }
+        .btn-admin:hover { background: #e65100; }
+        .btn-return { background: #c0392b; color: white; display: none; margin-top: 15px; }
+        .btn-return:hover { background: #962d22; }
+        .status-box { margin-top: 15px; padding: 15px; background: #e8f4f8; border-left: 5px solid #2980b9; display: none; border-radius: 4px; }
+        .status-step { margin: 8px 0; font-weight: bold; color: #bdc3c7; }
+        .active-status { color: #27ae60; }
+        .text-muted { color: #7f8c8d; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <header>
+    <h1>Vastra Fashion Store</h1>
+    <p>Order, Tracking aur Return Management System</p>
+</header>
+
+<div class="container">
+    
+    <div class="card">
+        <h2>Premium Cotton T-Shirt</h2>
+        <img src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500" alt="Tshirt" class="product-img">
+        <p class="price">₹499</p>
+        
+        <form id="orderForm">
+            <label>Size Chunne:</label>
+            <select id="size" required>
+                <option value="S">S (Small)</option>
+                <option value="M">M (Medium)</option>
+                <option value="L">L (Large)</option>
+                <option value="XL">XL (X-Large)</option>
+            </select>
+
+            <label>Aapka Naam:</label>
+            <input type="text" id="name" placeholder="Pura naam likhein" required>
+
+            <label>Mobile Number:</label>
+            <input type="tel" id="phone" placeholder="WhatsApp Number" required>
+
+            <label>Delivery Ka Pata:</label>
+            <textarea id="address" rows="2" placeholder="Ghar ka pata pin code ke sath" required></textarea>
+
+            <button type="button" class="btn-order" onclick="sendOrder()">WhatsApp Par Order Karein</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Order Status & Return</h2>
+        <p class="text-muted">Apna Order ID daal kar status check karein ya return request bhejein:</p>
+        
+        <label>Order ID Daalein:</label>
+        <input type="text" id="orderIdInput" placeholder="Eg: ORD-12345">
+        <button type="button" class="btn-track" onclick="trackOrder()">Status Check Karein</button>
+
+        <div id="statusBox" class="status-box">
+            <p><strong>Order ID:</strong> <span id="resId"></span></p>
+            <p><strong>Customer Name:</strong> <span id="resName"></span></p>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #cbd5e0;">
+            
+            <div id="step1" class="status-step">○ Order Received (Mil gaya hai)</div>
+            <div id="step2" class="status-step">○ Shipped (Raste me hai)</div>
+            <div id="step3" class="status-step">○ Delivered (Pahuch gaya hai)</div>
+            <div id="stepReturn" class="status-step" style="display:none; color: #c0392b;">⚠️ Return Requested (Return Process Me Hai)</div>
+            
+            <button type="button" id="returnBtn" class="btn-return" onclick="requestReturn()">❌ Ise Return/Wapas Karein</button>
+        </div>
+    </div>
+
+    <div class="card admin-card">
+        <h2>Dukandaar Panel (Admin Only)</h2>
+        <p class="text-muted" style="color: #d35400;">Yahan se dukandaar delivery status update karein:</p>
+        
+        <label>Customer Ka Order ID:</label>
+        <input type="text" id="adminOrderId" placeholder="Eg: ORD-12345">
+        
+        <label>Naya Status Chunne:</label>
+        <select id="adminStatus">
+            <option value="1">Order Received (Step 1)</option>
+            <option value="2">Shipped / Raste Me Hai (Step 2)</option>
+            <option value="3">Delivered / Pahuch Gaya (Step 3)</option>
+        </select>
+        
+        <button type="button" class="btn-admin" onclick="updateDeliveryStatus()">Status Update Karein</button>
+    </div>
+
+</div>
+<script>
+    // !!! YAHAN DUKANDAAR KA WHATSAPP NUMBER DAALEIN (91 ke sath) !!!
+    const shopkeeperNumber = "9695315436"; 
+
+    // 1. Order Bhejna
+    function sendOrder() {
+        const size = document.getElementById('size').value;
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+
+        if(!name || !phone || !address) {
+            alert("Kripya saari jankari bharein!");
+            return;
+        }
+
+        // Unique Order ID generation
+        const orderId = "ORD-" + Math.floor(10000 + Math.random() * 90000);
+
+        // Local Storage me save karna taki is device par track ho sake
+        const orderDetails = { name: name, phone: phone, status: "1" };
+        localStorage.setItem(orderId, JSON.stringify(orderDetails));
+
+        // WhatsApp message format
+        const textMessage = `*Naya Order Aaya Hai!*%0A%0A` +
+                            `*Order ID:* ${orderId}%0A` +
+                            `*Size:* ${size}%0A` +
+                            `*Customer:* ${name}%0A` +
+                            `*Contact:* ${phone}%0A` +
+                            `*Address:* ${address}`;
+
+        window.open(`https://api.whatsapp.com/send?phone=${shopkeeperNumber}&text=${textMessage}`, '_blank');
+        alert(`Order Bheja Gaya!\nApka Order ID: ${orderId}\nIse copy karke track karein.`);
+    }
+
+    // 2. Dukandaar Ke Liye Status Update Function
+    function updateDeliveryStatus() {
+        const orderId = document.getElementById('adminOrderId').value.trim();
+        const newStatus = document.getElementById('adminStatus').value;
+
+        if(!orderId) {
+            alert("Kripya Order ID daalein!");
+            return;
+        }
+
+        let orderData = localStorage.getItem(orderId);
+        if(orderData) {
+            let parsedData = JSON.parse(orderData);
+            parsedData.status = newStatus; // Status update kiya
+            localStorage.setItem(orderId, JSON.stringify(parsedData));
+            alert(`Order ID ${orderId} ka status kamyabi se update ho gaya!`);
+        } else {
+            // Agar pehle se store me nahi hai to demo entry bana dega
+            const demoData = { name: "Valued Customer", phone: "N/A", status: newStatus };
+            localStorage.setItem(orderId, JSON.stringify(demoData));
+            alert(`Naya Order ID ${orderId} bana kar status update kar diya gaya hai.`);
+        }
+    }
+     // 3. Customer Ke Liye Track Function
+    function trackOrder() {
+        const orderId = document.getElementById('orderIdInput').value.trim();
+        const statusBox = document.getElementById('statusBox');
+        const returnBtn = document.getElementById('returnBtn');
+
+        if(!orderId) {
+            alert("Order ID daalna zaroori hai!");
+            return;
+        }
+
+        let orderData = localStorage.getItem(orderId);
+
+        if(orderData) {
+            let data = JSON.parse(orderData);
+            document.getElementById('resId').innerText = orderId;
+            document.getElementById('resName').innerText = data.name;
+            statusBox.style.display = "block";
+
+            // Reset classes
+            document.getElementById('step1').className = "status-step";
+            document.getElementById('step2').className = "status-step";
+            document.getElementById('step3').className = "status-step";
+            document.getElementById('stepReturn').style.display = "none";
+            returnBtn.style.display = "none";
+
+            // Status logic highlight
+            if(data.status >= "1") document.getElementById('step1').className = "status-step active-status";
+            if(data.status >= "2") document.getElementById('step2').className = "status-step active-status";
+            if(data.status >= "3") {
+                document.getElementById('step3').className = "status-step active-status";
+                returnBtn.style.display = "block"; // Return option sirf Delivered hone ke baad dikhega
+            }
+            if(data.status === "returned") {
+                document.getElementById('stepReturn').style.display = "block";
+                returnBtn.style.display = "none"; // Ek baar return dabane ke baad button gayab
+            }
+        } else {
+            alert("Ye Order ID galat hai ya koi order nahi mila!");
+            statusBox.style.display = "none";
+        }
+    }
+
+    // 4. Customer Ke Liye Return Function
+    function requestReturn() {
+        const orderId = document.getElementById('orderIdInput').value.trim();
+        let orderData = localStorage.getItem(orderId);
+
+        if(orderData) {
+            let data = JSON.parse(orderData);
+            
+            // Status local storage me badle
+            data.status = "returned";
+            localStorage.setItem(orderId, JSON.stringify(data));
+
+            // Dukandaar ko WhatsApp par Return ki info bhejein
+            const returnMessage = `*⚠️ RETURN REQUEST!*%0A%0A` +
+                                  `*Order ID:* ${orderId}%0A` +
+                                  `*Customer:* ${data.name}%0A` +
+                                  `*Contact:* ${data.phone}%0A` +
+                                  `*Reason:* Customer ne product wapas karne ki request ki hai.`;
+
+            window.open(`https://api.whatsapp.com/send?phone=${shopkeeperNumber}&text=${returnMessage}`, '_blank');
+            
+            alert("Aapki Return Request Dukandaar ko WhatsApp par bhej di gayi hai!");
+            trackOrder(); // Status refresh karne ke liye
+        }
+    }
+</script>
+
+</body>
+</html>
